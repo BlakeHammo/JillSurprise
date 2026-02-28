@@ -1,0 +1,8 @@
+frontend/node_modules
+frontend/dist
+backend/node_modules
+backend/uploads
+backend/okinawa.db
+backend/okinawa.db-wal
+backend/okinawa.db-shm
+.git
