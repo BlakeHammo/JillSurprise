@@ -18,29 +18,30 @@ function formatDate(iso) {
 
 // ── Upload Form ───────────────────────────────────────────────────────────────
 function UploadForm({ password, onCreated }) {
-  const [file, setFile]             = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [caption, setCaption]       = useState('');
+  const [files, setFiles]               = useState([]);
+  const [previewUrls, setPreviewUrls]   = useState([]);
+  const [isDragging, setIsDragging]     = useState(false);
+  const [caption, setCaption]           = useState('');
   const [locationName, setLocationName] = useState('');
-  const [latitude, setLatitude]     = useState('');
-  const [longitude, setLongitude]   = useState('');
-  const [category, setCategory]     = useState('moments');
-  const [date, setDate]             = useState(new Date().toISOString().split('T')[0]);
-  const [loading, setLoading]       = useState(false);
-  const [error, setError]           = useState('');
-  const [success, setSuccess]       = useState(false);
+  const [latitude, setLatitude]         = useState('');
+  const [longitude, setLongitude]       = useState('');
+  const [category, setCategory]         = useState('moments');
+  const [date, setDate]                 = useState(new Date().toISOString().split('T')[0]);
+  const [loading, setLoading]           = useState(false);
+  const [error, setError]               = useState('');
+  const [success, setSuccess]           = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
-  }, [previewUrl]);
+    return () => { previewUrls.forEach((u) => u && URL.revokeObjectURL(u)); };
+  }, [previewUrls]);
 
-  const applyFile = (f) => {
-    if (!f) return;
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setFile(f);
-    setPreviewUrl(f.type.startsWith('image/') ? URL.createObjectURL(f) : null);
+  const applyFiles = (fileList) => {
+    const arr = Array.from(fileList);
+    if (!arr.length) return;
+    previewUrls.forEach((u) => u && URL.revokeObjectURL(u));
+    setFiles(arr);
+    setPreviewUrls(arr.map((f) => f.type.startsWith('image/') ? URL.createObjectURL(f) : null));
   };
 
   const handleDragOver  = (e) => { e.preventDefault(); setIsDragging(true); };
@@ -48,13 +49,12 @@ function UploadForm({ password, onCreated }) {
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    const f = e.dataTransfer.files[0];
-    if (f) applyFile(f);
+    if (e.dataTransfer.files.length) applyFiles(e.dataTransfer.files);
   };
 
   const reset = () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setFile(null); setPreviewUrl(null);
+    previewUrls.forEach((u) => u && URL.revokeObjectURL(u));
+    setFiles([]); setPreviewUrls([]);
     setCaption(''); setLocationName('');
     setLatitude(''); setLongitude('');
     setCategory('moments');
@@ -63,7 +63,6 @@ function UploadForm({ password, onCreated }) {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // LocationPicker callback
   const handleLocationChange = useCallback((lat, lng, displayName) => {
     setLatitude(String(lat));
     setLongitude(String(lng));
@@ -74,12 +73,12 @@ function UploadForm({ password, onCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file) { setError('Please choose a photo or video.'); return; }
+    if (!files.length) { setError('Please choose at least one photo or video.'); return; }
     setLoading(true);
     setError('');
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      files.forEach((f) => formData.append('file', f));
       formData.append('caption', caption);
       formData.append('location_name', locationName);
       formData.append('latitude', latitude);
@@ -103,7 +102,7 @@ function UploadForm({ password, onCreated }) {
 
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-soft p-6 flex flex-col gap-4">
-      <h2 className="font-nunito font-bold text-lg text-cinna-text">Add New Entry</h2>
+      <h2 className="font-nunito font-bold text-lg text-cinna-text">Add New Memory</h2>
 
       {/* Drop zone */}
       <div
@@ -113,23 +112,47 @@ function UploadForm({ password, onCreated }) {
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
       >
-        {previewUrl ? (
-          <img src={previewUrl} alt="Preview" className="max-h-36 max-w-full rounded-xl object-cover" />
-        ) : file ? (
-          <div className="text-center">
-            <div className="text-4xl mb-1">🎬</div>
-            <p className="font-nunito text-cinna-text-soft text-sm font-semibold">{file.name}</p>
-          </div>
-        ) : (
+        {files.length === 0 ? (
           <div className="text-center pointer-events-none select-none">
             <div className="text-4xl mb-2">📸</div>
-            <p className="font-nunito text-cinna-text-soft font-semibold text-sm">Drag & drop a photo or video</p>
-            <p className="font-nunito text-cinna-text-soft/60 text-xs mt-1">or click to browse</p>
+            <p className="font-nunito text-cinna-text-soft font-semibold text-sm">Drag & drop photos or videos</p>
+            <p className="font-nunito text-cinna-text-soft/60 text-xs mt-1">Select multiple for a collection · or click to browse</p>
+          </div>
+        ) : files.length === 1 ? (
+          previewUrls[0] ? (
+            <img src={previewUrls[0]} alt="Preview" className="max-h-36 max-w-full rounded-xl object-cover" />
+          ) : (
+            <div className="text-center pointer-events-none">
+              <div className="text-4xl mb-1">🎬</div>
+              <p className="font-nunito text-cinna-text-soft text-sm font-semibold">{files[0].name}</p>
+            </div>
+          )
+        ) : (
+          /* Multi-file grid preview */
+          <div className="grid grid-cols-3 gap-1.5 w-full p-1 pointer-events-none">
+            {files.slice(0, 9).map((f, i) => (
+              previewUrls[i] ? (
+                <img key={i} src={previewUrls[i]} alt=""
+                  className="aspect-square w-full object-cover rounded-lg" />
+              ) : (
+                <div key={i} className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center text-xl">🎬</div>
+              )
+            ))}
           </div>
         )}
       </div>
-      <input ref={fileInputRef} type="file" accept="image/*,video/*" className="hidden"
-        onChange={(e) => applyFile(e.target.files[0])} />
+
+      {/* File count indicator */}
+      {files.length > 0 && (
+        <p className="font-nunito text-cinna-text-soft text-xs text-center -mt-2">
+          {files.length === 1
+            ? `1 file selected`
+            : `${files.length} photos selected — saved as one memory`}
+        </p>
+      )}
+
+      <input ref={fileInputRef} type="file" accept="image/*,video/*" multiple className="hidden"
+        onChange={(e) => applyFiles(e.target.files)} />
 
       <textarea
         value={caption}
@@ -165,7 +188,7 @@ function UploadForm({ password, onCreated }) {
           className="flex-1 py-2.5 rounded-full bg-cinna-sky text-white font-nunito font-bold text-sm shadow-soft hover:bg-cinna-sky/90 transition-all disabled:opacity-50">
           {loading ? 'Uploading…' : 'Add Entry ✨'}
         </button>
-        {(file || caption) && (
+        {(files.length > 0 || caption) && (
           <button type="button" onClick={reset}
             className="px-4 py-2.5 rounded-full border border-gray-200 text-cinna-text-soft font-nunito font-semibold text-sm hover:bg-gray-50 transition-all">
             Reset

@@ -59,6 +59,13 @@ export default function MediaCard({ entry, onClick, animationDelay = 0 }) {
         <span className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold font-nunito ${badge.cls}`}>
           {badge.label}
         </span>
+
+        {/* Multi-photo count badge */}
+        {entry.media?.length > 1 && (
+          <span className="absolute top-3 right-3 flex items-center gap-1 bg-black/50 text-white rounded-full px-2 py-0.5 text-xs font-nunito font-bold">
+            📷 {entry.media.length}
+          </span>
+        )}
       </div>
 
       {/* Card body */}

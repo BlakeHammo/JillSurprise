@@ -8,6 +8,7 @@ const db = new Database(dbPath);
 
 // Enable WAL mode for better concurrent read performance
 db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS entries (
@@ -20,7 +21,16 @@ db.exec(`
     longitude     REAL,
     category      TEXT    DEFAULT 'moments' CHECK(category IN ('food', 'scenery', 'moments')),
     date          TEXT    NOT NULL
-  )
+  );
+
+  CREATE TABLE IF NOT EXISTS entry_media (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    entry_id   INTEGER NOT NULL,
+    filename   TEXT    NOT NULL,
+    media_type TEXT    NOT NULL DEFAULT 'photo',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (entry_id) REFERENCES entries(id) ON DELETE CASCADE
+  );
 `);
 
 module.exports = db;
