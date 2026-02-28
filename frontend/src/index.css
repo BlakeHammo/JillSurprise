@@ -161,11 +161,12 @@ body {
 
 /* ── Lightbox media ──────────────────────────────────────────────────────── */
 .lightbox-media {
-  max-height: 65vh;
+  max-height: 62vh;
   max-width: 100%;
   width: auto;
+  height: auto;
   object-fit: contain;
-  border-radius: 1.25rem;
+  display: block;
 }
 
 /* ── Admin drag zone ─────────────────────────────────────────────────────── */
