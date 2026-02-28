@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { api } from '../utils/api';
+import SparkleAccent from './SparkleAccent';
 
 // Okinawa centre
 const OKINAWA = [26.3344, 127.8056];
@@ -48,12 +49,20 @@ export default function MapSection() {
 
         {/* Heading */}
         <div className="text-center mb-10 animate-fade-in-up">
-          <h2 className="font-dancing text-5xl font-bold text-cinna-text mb-2">
-            Adventures Map 🗺️
-          </h2>
-          <p className="font-nunito text-cinna-text-soft text-base">
-            Pinning every beautiful place on the island
-          </p>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <SparkleAccent className="w-5 h-5 animate-sparkle" color="#4ECDC4" />
+            <h2 className="font-dancing text-5xl font-bold text-cinna-text">
+              Adventures Map 🗺️
+            </h2>
+            <SparkleAccent className="w-5 h-5 animate-sparkle" style={{ animationDelay: '0.6s' }} color="#FF6B8A" />
+          </div>
+          <div className="flex items-center justify-center gap-2 mt-1">
+            <span className="h-px w-16 rounded-full" style={{ background: 'linear-gradient(90deg, transparent, #4ECDC4)' }} />
+            <p className="font-nunito text-cinna-text-soft text-base">
+              Pinning every beautiful place on the island
+            </p>
+            <span className="h-px w-16 rounded-full" style={{ background: 'linear-gradient(90deg, #4ECDC4, transparent)' }} />
+          </div>
         </div>
 
         {/* Map */}

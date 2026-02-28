@@ -4,6 +4,7 @@ import { api } from '../utils/api';
 import FilterBar from './FilterBar';
 import MediaCard from './MediaCard';
 import Lightbox from './Lightbox';
+import SparkleAccent from './SparkleAccent';
 
 const BREAKPOINTS = { default: 3, 1100: 2, 700: 1 };
 
@@ -34,9 +35,13 @@ export default function Gallery() {
 
         {/* Section heading */}
         <div className="text-center mb-10 animate-fade-in-up">
-          <h2 className="font-dancing text-5xl font-bold text-cinna-text mb-2">
-            Memories 🌺
-          </h2>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <SparkleAccent className="w-6 h-6 animate-sparkle" color="#4ECDC4" />
+            <h2 className="font-dancing text-5xl font-bold text-cinna-text">
+              Memories 🌺
+            </h2>
+            <SparkleAccent className="w-6 h-6 animate-sparkle" style={{ animationDelay: '0.9s' }} color="#FF6B8A" />
+          </div>
           <p className="font-nunito text-cinna-text-soft text-base">
             Every moment, captured in a little polaroid frame
           </p>

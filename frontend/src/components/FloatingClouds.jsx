@@ -1,52 +1,49 @@
-/* Decorative floating cloud SVGs for the hero section */
-
-function Cloud({ className, style }) {
-  return (
-    <svg
-      className={className}
-      style={style}
-      viewBox="0 0 320 160"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <g className="cloud-shape">
-        <circle cx="85"  cy="100" r="55" />
-        <circle cx="145" cy="75"  r="65" />
-        <circle cx="215" cy="85"  r="55" />
-        <circle cx="265" cy="105" r="42" />
-        <rect x="45" y="105" width="240" height="55" rx="8" />
-      </g>
-    </svg>
-  );
-}
-
+/*
+ * FloatingClouds — uses cloud.png scattered at varying sizes/opacities
+ * to form a soft atmospheric backdrop across the hero section.
+ */
 export default function FloatingClouds() {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {/* Large cloud — top left */}
-      <Cloud
-        className="absolute -left-16 top-8 w-80 opacity-70 animate-cloud-drift"
+    <div className="pointer-events-none absolute inset-0 overflow-hidden select-none" aria-hidden="true">
+      {/* Large — top left, drifting in from edge */}
+      <img src="/cloud.png" alt=""
+        className="absolute -left-8 top-4 w-56 opacity-60 animate-cloud-drift"
         style={{ animationDelay: '0s' }}
       />
-      {/* Medium cloud — top right */}
-      <Cloud
-        className="absolute -right-8 top-16 w-64 opacity-60 animate-cloud-drift-r"
+      {/* Large — top right */}
+      <img src="/cloud.png" alt=""
+        className="absolute -right-6 top-10 w-48 opacity-55 animate-cloud-drift-r"
         style={{ animationDelay: '3s' }}
       />
-      {/* Small cloud — centre left */}
-      <Cloud
-        className="absolute left-1/4 top-4 w-44 opacity-50 animate-cloud-drift"
+      {/* Medium — upper centre */}
+      <img src="/cloud.png" alt=""
+        className="absolute left-[36%] top-2 w-36 opacity-40 animate-cloud-drift"
         style={{ animationDelay: '6s' }}
       />
-      {/* Medium cloud — bottom right */}
-      <Cloud
-        className="absolute right-1/4 bottom-12 w-56 opacity-40 animate-cloud-drift-r"
+      {/* Medium — mid right */}
+      <img src="/cloud.png" alt=""
+        className="absolute right-[18%] top-[32%] w-40 opacity-30 animate-cloud-drift-r"
+        style={{ animationDelay: '9s' }}
+      />
+      {/* Small — mid left */}
+      <img src="/cloud.png" alt=""
+        className="absolute left-[8%] top-[40%] w-28 opacity-25 animate-cloud-drift"
+        style={{ animationDelay: '5s' }}
+      />
+      {/* Small — bottom right */}
+      <img src="/cloud.png" alt=""
+        className="absolute right-[28%] bottom-16 w-32 opacity-30 animate-cloud-drift-r"
         style={{ animationDelay: '2s' }}
       />
-      {/* Tiny cloud — bottom left */}
-      <Cloud
-        className="absolute left-8 bottom-8 w-36 opacity-45 animate-cloud-drift"
+      {/* Tiny — bottom left */}
+      <img src="/cloud.png" alt=""
+        className="absolute left-8 bottom-12 w-20 opacity-35 animate-cloud-drift"
         style={{ animationDelay: '8s' }}
+      />
+      {/* Tiny — top centre-right, barely visible */}
+      <img src="/cloud.png" alt=""
+        className="absolute left-[54%] top-6 w-24 opacity-20 animate-cloud-drift"
+        style={{ animationDelay: '4s' }}
       />
     </div>
   );

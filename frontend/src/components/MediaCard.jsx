@@ -38,7 +38,6 @@ export default function MediaCard({ entry, onClick, animationDelay = 0 }) {
               muted
               playsInline
             />
-            {/* Play icon overlay */}
             <div className="absolute inset-0 flex items-center justify-center bg-black/20">
               <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-soft">
                 <svg className="w-6 h-6 ml-1 text-cinna-text" fill="currentColor" viewBox="0 0 24 24">
@@ -63,8 +62,7 @@ export default function MediaCard({ entry, onClick, animationDelay = 0 }) {
       </div>
 
       {/* Card body */}
-      <div className="px-4 pt-3 pb-4" style={{ background: 'white' }}>
-        {/* Location */}
+      <div className="px-4 pt-3 pb-4">
         {entry.location_name && (
           <p className="font-nunito font-bold text-cinna-text text-sm flex items-center gap-1 mb-1">
             <span className="text-pink-400">📍</span>
@@ -72,16 +70,14 @@ export default function MediaCard({ entry, onClick, animationDelay = 0 }) {
           </p>
         )}
 
-        {/* Caption */}
         {entry.caption && (
           <p className="font-nunito text-cinna-text-soft text-xs leading-relaxed line-clamp-2">
             {entry.caption}
           </p>
         )}
 
-        {/* Date */}
         <p className="font-nunito text-cinna-text-soft/70 text-xs mt-2 italic">
-          {formatDate(entry.date)}
+          ♡ {formatDate(entry.date)}
         </p>
       </div>
     </article>

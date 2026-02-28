@@ -18,6 +18,10 @@ export default {
           text: '#4A4A6A',
           'text-soft': '#8080A4',
           'border': 'rgba(135, 206, 235, 0.35)',
+          ocean:    '#4ECDC4',
+          coral:    '#FF6B8A',
+          hibiscus: '#E8365D',
+          star:     '#FFE566',
         },
       },
       fontFamily: {
@@ -44,6 +48,9 @@ export default {
         'cloud-drift-r': 'cloudDriftR 28s ease-in-out infinite alternate',
         'petal-fall': 'petalFall 8s linear infinite',
         pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        sparkle: 'sparkle 1.8s ease-in-out infinite',
+        'float-rotate': 'floatRotate 9s ease-in-out infinite',
+        sway: 'sway 5s ease-in-out infinite',
       },
       keyframes: {
         float: {
@@ -75,6 +82,18 @@ export default {
         pulse: {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.5' },
+        },
+        sparkle: {
+          '0%, 100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' },
+          '50%': { transform: 'scale(1.3) rotate(20deg)', opacity: '0.7' },
+        },
+        floatRotate: {
+          '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+          '50%': { transform: 'translateY(-14px) rotate(15deg)' },
+        },
+        sway: {
+          '0%, 100%': { transform: 'rotate(-6deg)' },
+          '50%': { transform: 'rotate(6deg)' },
         },
       },
     },
