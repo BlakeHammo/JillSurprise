@@ -79,7 +79,7 @@ export default function Hero() {
 
         {/* Subtitle */}
         <p className="font-nunito text-xl sm:text-2xl font-medium text-cinna-text/75 mb-8 leading-relaxed">
-          A little window into your adventure 
+          A little window into Jill's adventure 
         </p>
 
         {/* Info bubble */}

@@ -65,7 +65,7 @@ export default function LocationPicker({ latitude, longitude, onLocationChange }
   }, [onLocationChange]);
 
   const handleSearch = async (e) => {
-    e.preventDefault();
+    if (e?.preventDefault) e.preventDefault();
     if (!query.trim()) return;
     setSearching(true);
     setSearchError('');
@@ -90,23 +90,25 @@ export default function LocationPicker({ latitude, longitude, onLocationChange }
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Search bar */}
-      <form onSubmit={handleSearch} className="flex gap-2">
+      {/* Search bar — intentionally a div, not a form, to avoid nested-form conflicts */}
+      <div className="flex gap-2">
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSearch(e))}
           placeholder="Search a location (e.g. Churaumi Aquarium)"
           className="admin-input flex-1"
         />
         <button
-          type="submit"
+          type="button"
+          onClick={handleSearch}
           disabled={searching || !query.trim()}
           className="px-4 py-2 rounded-2xl bg-cinna-sky text-white font-nunito font-bold text-sm whitespace-nowrap hover:bg-cinna-sky/80 transition disabled:opacity-50"
         >
           {searching ? '…' : 'Find'}
         </button>
-      </form>
+      </div>
 
       {searchError && (
         <p className="font-nunito text-red-400 text-xs">{searchError}</p>
