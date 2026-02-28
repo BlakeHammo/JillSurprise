@@ -55,8 +55,15 @@ export default function AboutSection() {
         <div className="relative z-10 max-w-2xl mx-auto text-center animate-fade-in-up">
 
           {/* Icon */}
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white/70 shadow-glow mb-6 text-4xl animate-float">
-            🌺
+          <div className="mb-6 animate-float">
+            <img
+              src="/cinna-icon.png"
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+              className="w-40 h-40 object-contain select-none mx-auto"
+              style={{ filter: 'drop-shadow(0 4px 16px rgba(200,180,227,0.5))' }}
+            />
           </div>
 
           {/* Title */}
@@ -82,13 +89,13 @@ export default function AboutSection() {
             </div>
 
             <p className="font-nunito text-cinna-text text-lg leading-relaxed mb-4">
-              She set off on the adventure of her lifetime, and I made this little corner of the internet just to hold her memories.
+              I hope Okinawa is as magical as it looks in these pictures, and that you have the best time exploring, relaxing and eating all the delicious food.
             </p>
             <p className="font-nunito text-cinna-text text-lg leading-relaxed mb-4">
-              Every photo here is a moment I can't stop smiling about, even from thousands of miles away.
+              Here you can upload photos, videos and notes from your trip! Think of it as your own personal instagram you can share with friends and family.
             </p>
             <p className="font-nunito text-cinna-text text-lg leading-relaxed font-semibold">
-              Jill, this one's for you. I hope Okinawa is as magical as you deserve. 🌺
+              I hope this little project brings you joy. Can't wait to see you soon!
             </p>
 
             {/* Signature */}
@@ -99,7 +106,7 @@ export default function AboutSection() {
 
           {/* Bottom info */}
           <p className="font-nunito text-cinna-text-soft text-sm mt-8">
-            Made with lots of love · Okinawa Diaries 🌺
+            Made with lots of love · Blake Hammond
           </p>
         </div>
       </section>

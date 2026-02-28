@@ -79,12 +79,12 @@ export default function Hero() {
 
         {/* Subtitle */}
         <p className="font-nunito text-xl sm:text-2xl font-medium text-cinna-text/75 mb-8 leading-relaxed">
-          A little window into your adventure ✨
+          A little window into your adventure 
         </p>
 
         {/* Info bubble */}
         <div className="glass-card inline-block px-6 py-3 text-cinna-text-soft font-nunito text-sm font-semibold tracking-wide">
-          📍 Okinawa, Japan &nbsp;·&nbsp; 🗓️ February 2026
+          📍 Okinawa, Japan &nbsp;·&nbsp; February 2026
         </div>
       </div>
 
