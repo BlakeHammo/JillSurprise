@@ -30,6 +30,13 @@ app.use('/api/entries', entriesRoutes);
 // Health check
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
+// Serve built frontend (production)
+const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  app.get('*', (_req, res) => res.sendFile(path.join(frontendDist, 'index.html')));
+}
+
 app.listen(PORT, () => {
   console.log(`🌸 Okinawa Diaries backend running on http://localhost:${PORT}`);
 });
