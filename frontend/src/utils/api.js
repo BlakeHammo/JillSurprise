@@ -21,6 +21,17 @@ export const api = {
       body: formData,
     }).then((r) => r.json()),
 
+  /** Update an existing entry's metadata (caption, location, category, date). */
+  updateEntry: (id, data, password) =>
+    fetch(`${BASE}/api/entries/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${password}`,
+      },
+      body: JSON.stringify(data),
+    }).then((r) => r.json()),
+
   /** Delete an entry by id. */
   deleteEntry: (id, password) =>
     fetch(`${BASE}/api/entries/${id}`, {
@@ -28,6 +39,11 @@ export const api = {
       headers: { Authorization: `Bearer ${password}` },
     }).then((r) => r.json()),
 
-  /** Build the URL for a stored media file. */
-  mediaUrl: (filename) => `${BASE}/uploads/${filename}`,
+  /**
+   * Build the URL for a stored media file.
+   * - If filename is already a full URL (Cloudinary in production) → return as-is.
+   * - Otherwise → prepend the backend base URL + /uploads/
+   */
+  mediaUrl: (filename) =>
+    filename?.startsWith('http') ? filename : `${BASE}/uploads/${filename}`,
 };

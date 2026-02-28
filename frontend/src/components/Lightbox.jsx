@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { api } from '../utils/api';
 
 const BADGE = {
@@ -14,13 +14,16 @@ function formatDate(iso) {
   });
 }
 
+const SWIPE_THRESHOLD = 50; // px
+
 export default function Lightbox({ entry, onClose, onPrev, onNext, hasPrev, hasNext }) {
   const badge = BADGE[entry?.category] || BADGE.moments;
+  const touchStartX = useRef(null);
 
-  // Close on Escape / navigate with arrow keys
+  // Keyboard navigation
   const handleKey = useCallback((e) => {
     if (e.key === 'Escape') onClose();
-    if (e.key === 'ArrowLeft' && hasPrev) onPrev();
+    if (e.key === 'ArrowLeft'  && hasPrev) onPrev();
     if (e.key === 'ArrowRight' && hasNext) onNext();
   }, [onClose, onPrev, onNext, hasPrev, hasNext]);
 
@@ -33,6 +36,18 @@ export default function Lightbox({ entry, onClose, onPrev, onNext, hasPrev, hasN
     };
   }, [handleKey]);
 
+  // Touch swipe handlers
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e) => {
+    if (touchStartX.current === null) return;
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (delta < -SWIPE_THRESHOLD && hasNext) onNext();
+    if (delta >  SWIPE_THRESHOLD && hasPrev) onPrev();
+  };
+
   if (!entry) return null;
 
   return (
@@ -40,6 +55,8 @@ export default function Lightbox({ entry, onClose, onPrev, onNext, hasPrev, hasN
       className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
       style={{ background: 'rgba(74, 74, 106, 0.55)', backdropFilter: 'blur(8px)' }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       role="dialog"
       aria-modal="true"
       aria-label="Media viewer"
@@ -55,11 +72,11 @@ export default function Lightbox({ entry, onClose, onPrev, onNext, hasPrev, hasN
           ✕
         </button>
 
-        {/* Navigation arrows */}
+        {/* Navigation arrows (desktop — touch users swipe) */}
         {hasPrev && (
           <button
             onClick={onPrev}
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 shadow-soft flex items-center justify-center hover:scale-110 transition-transform text-cinna-text"
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 shadow-soft hidden sm:flex items-center justify-center hover:scale-110 transition-transform text-cinna-text text-xl font-bold"
             aria-label="Previous"
           >
             ‹
@@ -68,11 +85,20 @@ export default function Lightbox({ entry, onClose, onPrev, onNext, hasPrev, hasN
         {hasNext && (
           <button
             onClick={onNext}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 shadow-soft flex items-center justify-center hover:scale-110 transition-transform text-cinna-text"
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 shadow-soft hidden sm:flex items-center justify-center hover:scale-110 transition-transform text-cinna-text text-xl font-bold"
             aria-label="Next"
           >
             ›
           </button>
+        )}
+
+        {/* Swipe hint on mobile (only when there are neighbours) */}
+        {(hasPrev || hasNext) && (
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 sm:hidden z-10 pointer-events-none">
+            <span className="font-nunito text-cinna-text-soft/50 text-xs">
+              {hasPrev && '‹ '}swipe{hasNext && ' ›'}
+            </span>
+          </div>
         )}
 
         {/* Media */}
@@ -97,14 +123,13 @@ export default function Lightbox({ entry, onClose, onPrev, onNext, hasPrev, hasN
 
         {/* Details */}
         <div className="px-6 py-5 overflow-y-auto">
-          {/* Badge + location row */}
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <span className={`px-3 py-1 rounded-full text-xs font-bold font-nunito ${badge.cls}`}>
               {badge.label}
             </span>
             {entry.location_name && (
               <span className="font-nunito font-semibold text-cinna-text text-sm flex items-center gap-1">
-                <span className="text-cinna-pink">📍</span>
+                <span className="text-pink-400">📍</span>
                 {entry.location_name}
               </span>
             )}
@@ -115,7 +140,6 @@ export default function Lightbox({ entry, onClose, onPrev, onNext, hasPrev, hasN
             )}
           </div>
 
-          {/* Caption */}
           {entry.caption && (
             <p className="font-nunito text-cinna-text leading-relaxed text-sm">
               {entry.caption}

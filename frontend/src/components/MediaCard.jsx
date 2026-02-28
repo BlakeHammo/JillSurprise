@@ -19,7 +19,7 @@ export default function MediaCard({ entry, onClick, animationDelay = 0 }) {
 
   return (
     <article
-      className="polaroid animate-fade-in-up"
+      className="polaroid group animate-fade-in-up"
       style={{ animationDelay: `${animationDelay}s` }}
       onClick={onClick}
       role="button"
@@ -67,7 +67,7 @@ export default function MediaCard({ entry, onClick, animationDelay = 0 }) {
         {/* Location */}
         {entry.location_name && (
           <p className="font-nunito font-bold text-cinna-text text-sm flex items-center gap-1 mb-1">
-            <span className="text-cinna-pink">📍</span>
+            <span className="text-pink-400">📍</span>
             {entry.location_name}
           </p>
         )}

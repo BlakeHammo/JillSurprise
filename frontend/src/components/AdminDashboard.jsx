@@ -1,12 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { api } from '../utils/api';
+import LocationPicker from './LocationPicker';
+import EditEntryForm from './EditEntryForm';
 
 const CATEGORIES = ['food', 'scenery', 'moments'];
 
 const BADGE = {
-  food:    'badge-food',
-  scenery: 'badge-scenery',
-  moments: 'badge-moments',
+  food:    { cls: 'badge-food',     label: '🍜 Food'    },
+  scenery: { cls: 'badge-scenery',  label: '🏔️ Scenery' },
+  moments: { cls: 'badge-moments',  label: '💫 Moments' },
 };
 
 function formatDate(iso) {
@@ -16,21 +18,20 @@ function formatDate(iso) {
 
 // ── Upload Form ───────────────────────────────────────────────────────────────
 function UploadForm({ password, onCreated }) {
-  const [file, setFile] = useState(null);
+  const [file, setFile]             = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [caption, setCaption] = useState('');
+  const [caption, setCaption]       = useState('');
   const [locationName, setLocationName] = useState('');
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
-  const [category, setCategory] = useState('moments');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [latitude, setLatitude]     = useState('');
+  const [longitude, setLongitude]   = useState('');
+  const [category, setCategory]     = useState('moments');
+  const [date, setDate]             = useState(new Date().toISOString().split('T')[0]);
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState('');
+  const [success, setSuccess]       = useState(false);
   const fileInputRef = useRef(null);
 
-  // Revoke old preview URL when it changes to avoid memory leaks
   useEffect(() => {
     return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
   }, [previewUrl]);
@@ -39,14 +40,10 @@ function UploadForm({ password, onCreated }) {
     if (!f) return;
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setFile(f);
-    if (f.type.startsWith('image/')) {
-      setPreviewUrl(URL.createObjectURL(f));
-    } else {
-      setPreviewUrl(null);
-    }
+    setPreviewUrl(f.type.startsWith('image/') ? URL.createObjectURL(f) : null);
   };
 
-  const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
+  const handleDragOver  = (e) => { e.preventDefault(); setIsDragging(true); };
   const handleDragLeave = () => setIsDragging(false);
   const handleDrop = (e) => {
     e.preventDefault();
@@ -57,17 +54,23 @@ function UploadForm({ password, onCreated }) {
 
   const reset = () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setFile(null);
-    setPreviewUrl(null);
-    setCaption('');
-    setLocationName('');
-    setLatitude('');
-    setLongitude('');
+    setFile(null); setPreviewUrl(null);
+    setCaption(''); setLocationName('');
+    setLatitude(''); setLongitude('');
     setCategory('moments');
     setDate(new Date().toISOString().split('T')[0]);
     setError('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  // LocationPicker callback
+  const handleLocationChange = useCallback((lat, lng, displayName) => {
+    setLatitude(String(lat));
+    setLongitude(String(lng));
+    if (displayName && !locationName) {
+      setLocationName(displayName.split(',')[0].trim());
+    }
+  }, [locationName]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -104,14 +107,14 @@ function UploadForm({ password, onCreated }) {
 
       {/* Drop zone */}
       <div
-        className={`drop-zone flex flex-col items-center justify-center gap-3 min-h-[160px] ${isDragging ? 'dragging' : ''}`}
+        className={`drop-zone flex flex-col items-center justify-center gap-3 min-h-[140px] ${isDragging ? 'dragging' : ''}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
       >
         {previewUrl ? (
-          <img src={previewUrl} alt="Preview" className="max-h-44 max-w-full rounded-xl object-cover" />
+          <img src={previewUrl} alt="Preview" className="max-h-36 max-w-full rounded-xl object-cover" />
         ) : file ? (
           <div className="text-center">
             <div className="text-4xl mb-1">🎬</div>
@@ -120,99 +123,51 @@ function UploadForm({ password, onCreated }) {
         ) : (
           <div className="text-center pointer-events-none select-none">
             <div className="text-4xl mb-2">📸</div>
-            <p className="font-nunito text-cinna-text-soft font-semibold text-sm">
-              Drag & drop a photo or video
-            </p>
+            <p className="font-nunito text-cinna-text-soft font-semibold text-sm">Drag & drop a photo or video</p>
             <p className="font-nunito text-cinna-text-soft/60 text-xs mt-1">or click to browse</p>
           </div>
         )}
       </div>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*,video/*"
-        className="hidden"
-        onChange={(e) => applyFile(e.target.files[0])}
-      />
+      <input ref={fileInputRef} type="file" accept="image/*,video/*" className="hidden"
+        onChange={(e) => applyFile(e.target.files[0])} />
 
-      {/* Text fields */}
       <textarea
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
-        placeholder="Caption (optional) — describe the moment…"
+        placeholder="Caption — describe the moment…"
         rows={3}
         className="admin-input resize-none"
       />
 
-      <input
-        type="text"
-        value={locationName}
+      <input type="text" value={locationName}
         onChange={(e) => setLocationName(e.target.value)}
-        placeholder="Location name (e.g. Churaumi Aquarium)"
+        placeholder="Location name (auto-filled when you pick on the map)"
         className="admin-input"
       />
 
-      <div className="grid grid-cols-2 gap-3">
-        <input
-          type="number"
-          step="any"
-          value={latitude}
-          onChange={(e) => setLatitude(e.target.value)}
-          placeholder="Latitude"
-          className="admin-input"
-        />
-        <input
-          type="number"
-          step="any"
-          value={longitude}
-          onChange={(e) => setLongitude(e.target.value)}
-          placeholder="Longitude"
-          className="admin-input"
-        />
-      </div>
+      {/* Location picker — replaces raw lat/lng inputs */}
+      <LocationPicker latitude={latitude} longitude={longitude} onLocationChange={handleLocationChange} />
 
       <div className="grid grid-cols-2 gap-3">
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="admin-input"
-        >
+        <select value={category} onChange={(e) => setCategory(e.target.value)} className="admin-input">
           {CATEGORIES.map((c) => (
             <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
           ))}
         </select>
-
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="admin-input"
-        />
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="admin-input" />
       </div>
 
-      {error && (
-        <p className="font-nunito text-red-400 text-sm bg-red-50 rounded-xl px-3 py-2">{error}</p>
-      )}
-      {success && (
-        <p className="font-nunito text-green-600 text-sm bg-green-50 rounded-xl px-3 py-2">
-          🌸 Entry added successfully!
-        </p>
-      )}
+      {error   && <p className="font-nunito text-red-400 text-sm bg-red-50 rounded-xl px-3 py-2">{error}</p>}
+      {success && <p className="font-nunito text-green-600 text-sm bg-green-50 rounded-xl px-3 py-2">🌸 Entry added!</p>}
 
       <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={loading}
-          className="flex-1 py-2.5 rounded-full bg-cinna-sky text-white font-nunito font-bold text-sm shadow-soft hover:bg-cinna-sky/90 transition-all disabled:opacity-50"
-        >
+        <button type="submit" disabled={loading}
+          className="flex-1 py-2.5 rounded-full bg-cinna-sky text-white font-nunito font-bold text-sm shadow-soft hover:bg-cinna-sky/90 transition-all disabled:opacity-50">
           {loading ? 'Uploading…' : 'Add Entry ✨'}
         </button>
         {(file || caption) && (
-          <button
-            type="button"
-            onClick={reset}
-            className="px-4 py-2.5 rounded-full border border-gray-200 text-cinna-text-soft font-nunito font-semibold text-sm hover:bg-gray-50 transition-all"
-          >
+          <button type="button" onClick={reset}
+            className="px-4 py-2.5 rounded-full border border-gray-200 text-cinna-text-soft font-nunito font-semibold text-sm hover:bg-gray-50 transition-all">
             Reset
           </button>
         )}
@@ -222,8 +177,9 @@ function UploadForm({ password, onCreated }) {
 }
 
 // ── Entries List ──────────────────────────────────────────────────────────────
-function EntriesList({ entries, password, onDeleted }) {
-  const [confirmId, setConfirmId] = useState(null);
+function EntriesList({ entries, password, onUpdated, onDeleted }) {
+  const [editingId, setEditingId]   = useState(null);
+  const [confirmId, setConfirmId]   = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const timerRef = useRef(null);
 
@@ -241,10 +197,17 @@ function EntriesList({ entries, password, onDeleted }) {
         setConfirmId(null);
       }
     } else {
+      // If something else was pending confirmation, reset it
+      if (editingId && editingId !== id) setEditingId(null);
       setConfirmId(id);
       clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => setConfirmId(null), 3000);
     }
+  };
+
+  const handleEdit = (id) => {
+    setEditingId((prev) => (prev === id ? null : id));
+    setConfirmId(null);
   };
 
   if (entries.length === 0) {
@@ -268,52 +231,83 @@ function EntriesList({ entries, password, onDeleted }) {
 
       <ul className="divide-y divide-gray-50">
         {entries.map((entry) => (
-          <li key={entry.id} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50/60 transition-colors">
+          <li key={entry.id}>
+            {/* Entry row */}
+            <div className={[
+              'flex items-center gap-3 px-4 py-3 transition-colors',
+              editingId === entry.id ? 'bg-cinna-sky-pale/40' : 'hover:bg-gray-50/60',
+            ].join(' ')}>
 
-            {/* Thumbnail */}
-            <div className="w-14 h-14 rounded-xl overflow-hidden bg-cinna-sky-pale flex-shrink-0">
-              {entry.media_type === 'photo' ? (
-                <img
-                  src={api.mediaUrl(entry.filename)}
-                  alt={entry.location_name}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-xl">🎬</div>
-              )}
-            </div>
-
-            {/* Info */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-bold font-nunito ${BADGE[entry.category] || ''}`}>
-                  {entry.category}
-                </span>
-                <span className="font-nunito font-semibold text-cinna-text text-sm truncate">
-                  {entry.location_name || 'Untitled'}
-                </span>
+              {/* Thumbnail */}
+              <div className="w-14 h-14 rounded-xl overflow-hidden bg-cinna-sky-pale flex-shrink-0">
+                {entry.media_type === 'photo' ? (
+                  <img src={api.mediaUrl(entry.filename)} alt={entry.location_name}
+                    className="w-full h-full object-cover" loading="lazy" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-xl">🎬</div>
+                )}
               </div>
-              {entry.caption && (
-                <p className="font-nunito text-cinna-text-soft text-xs mt-0.5 truncate">{entry.caption}</p>
-              )}
-              <p className="font-nunito text-cinna-text-soft/60 text-xs mt-0.5">{formatDate(entry.date)}</p>
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold font-nunito ${BADGE[entry.category]?.cls || ''}`}>
+                    {BADGE[entry.category]?.label || entry.category}
+                  </span>
+                  <span className="font-nunito font-semibold text-cinna-text text-sm truncate">
+                    {entry.location_name || 'Untitled'}
+                  </span>
+                </div>
+                {entry.caption && (
+                  <p className="font-nunito text-cinna-text-soft text-xs mt-0.5 truncate">{entry.caption}</p>
+                )}
+                <p className="font-nunito text-cinna-text-soft/60 text-xs mt-0.5">{formatDate(entry.date)}</p>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex-shrink-0 flex gap-1.5">
+                <button
+                  onClick={() => handleEdit(entry.id)}
+                  className={[
+                    'px-3 py-1.5 rounded-full font-nunito font-bold text-xs transition-all',
+                    editingId === entry.id
+                      ? 'bg-cinna-sky text-white'
+                      : 'bg-cinna-sky-pale text-cinna-sky hover:bg-cinna-sky-light',
+                  ].join(' ')}
+                >
+                  {editingId === entry.id ? 'Close' : 'Edit'}
+                </button>
+
+                <button
+                  onClick={() => handleDelete(entry.id)}
+                  disabled={deletingId === entry.id}
+                  className={[
+                    'px-3 py-1.5 rounded-full font-nunito font-bold text-xs transition-all',
+                    confirmId === entry.id
+                      ? 'bg-red-500 text-white scale-105 shadow-sm'
+                      : 'bg-red-50 text-red-400 hover:bg-red-100',
+                    deletingId === entry.id ? 'opacity-50' : '',
+                  ].join(' ')}
+                >
+                  {deletingId === entry.id ? '…' : confirmId === entry.id ? 'Sure?' : 'Delete'}
+                </button>
+              </div>
             </div>
 
-            {/* Delete */}
-            <button
-              onClick={() => handleDelete(entry.id)}
-              disabled={deletingId === entry.id}
-              className={[
-                'flex-shrink-0 px-3 py-1.5 rounded-full font-nunito font-bold text-xs transition-all',
-                confirmId === entry.id
-                  ? 'bg-red-500 text-white scale-105 shadow-sm'
-                  : 'bg-red-50 text-red-400 hover:bg-red-100',
-                deletingId === entry.id ? 'opacity-50' : '',
-              ].join(' ')}
-            >
-              {deletingId === entry.id ? '…' : confirmId === entry.id ? 'Confirm?' : 'Delete'}
-            </button>
+            {/* Inline edit form (accordion) */}
+            {editingId === entry.id && (
+              <div className="px-4 pb-4">
+                <EditEntryForm
+                  entry={entry}
+                  password={password}
+                  onSave={(updated) => {
+                    onUpdated(updated);
+                    setEditingId(null);
+                  }}
+                  onCancel={() => setEditingId(null)}
+                />
+              </div>
+            )}
           </li>
         ))}
       </ul>
@@ -334,39 +328,14 @@ export default function AdminDashboard({ password, onLogout }) {
   }, []);
 
   const handleCreated = (entry) => setEntries((prev) => [entry, ...prev]);
+  const handleUpdated = (updated) =>
+    setEntries((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
   const handleDeleted = (id) => setEntries((prev) => prev.filter((e) => e.id !== id));
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: 'linear-gradient(160deg, #f0f8ff 0%, #fff8f0 100%)' }}
-    >
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur border-b border-cinna-sky/20 sticky top-0 z-30">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🌸</span>
-            <span className="font-dancing text-2xl font-bold text-cinna-text">Okinawa Diaries</span>
-            <span className="font-nunito text-cinna-text-soft text-sm ml-1">· Admin</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <a
-              href="/"
-              className="font-nunito text-cinna-text-soft text-sm hover:text-cinna-text transition"
-            >
-              View site ↗
-            </a>
-            <button
-              onClick={onLogout}
-              className="px-4 py-1.5 rounded-full border border-cinna-sky/30 font-nunito font-semibold text-sm text-cinna-text-soft hover:bg-gray-50 transition"
-            >
-              Sign out
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen" style={{ background: 'linear-gradient(160deg, #f0f8ff 0%, #fff8f0 100%)' }}>
 
-      {/* Inline styles for admin inputs (scoped to this component) */}
+      {/* Inline admin input styles — scoped globally so LocationPicker / EditEntryForm inherit them */}
       <style>{`
         .admin-input {
           width: 100%;
@@ -385,7 +354,27 @@ export default function AdminDashboard({ password, onLogout }) {
         select.admin-input { cursor: pointer; }
       `}</style>
 
-      {/* Main content */}
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur border-b border-cinna-sky/20 sticky top-0 z-30">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🌸</span>
+            <span className="font-dancing text-2xl font-bold text-cinna-text">Okinawa Diaries</span>
+            <span className="font-nunito text-cinna-text-soft text-sm ml-1">· Admin</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <a href="/" className="font-nunito text-cinna-text-soft text-sm hover:text-cinna-text transition">
+              View site ↗
+            </a>
+            <button onClick={onLogout}
+              className="px-4 py-1.5 rounded-full border border-cinna-sky/30 font-nunito font-semibold text-sm text-cinna-text-soft hover:bg-gray-50 transition">
+              Sign out
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main */}
       <main className="max-w-5xl mx-auto px-4 py-8">
         {loading ? (
           <div className="flex justify-center py-24">
@@ -394,7 +383,12 @@ export default function AdminDashboard({ password, onLogout }) {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
             <UploadForm password={password} onCreated={handleCreated} />
-            <EntriesList entries={entries} password={password} onDeleted={handleDeleted} />
+            <EntriesList
+              entries={entries}
+              password={password}
+              onUpdated={handleUpdated}
+              onDeleted={handleDeleted}
+            />
           </div>
         )}
       </main>

@@ -1,7 +1,10 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 
-const db = new Database(path.join(__dirname, 'okinawa.db'));
+// DATABASE_PATH can be set to a persistent volume path in production.
+// e.g. on Railway: attach a volume at /data and set DATABASE_PATH=/data/okinawa.db
+const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'okinawa.db');
+const db = new Database(dbPath);
 
 // Enable WAL mode for better concurrent read performance
 db.pragma('journal_mode = WAL');
